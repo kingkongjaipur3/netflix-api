@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <style>
+        body { font-family: sans-serif; background: #0d1117; color: #c9d1d9; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #30363d; padding: 10px; text-align: left; }
+        th { background: #161b22; }
+        .btn { padding: 8px 12px; background: #238636; color: #fff; text-decoration: none; border-radius: 4px; }
+        .btn-red { background: #da3633; }
+        .form-group { background: #161b22; padding: 20px; border-radius: 8px; border: 1px solid #30363d; margin-bottom: 20px; }
+        input { padding: 10px; background: #0d1117; border: 1px solid #30363d; color: #fff; border-radius: 4px; margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <div style="display: flex; justify-content: space-between;">
+        <h2>Admin Dashboard</h2>
+        <a href="/admin/logout" style="color: #ff7b72; text-decoration: none;">Logout</a>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}<p style="color: #7ee787;">{{ messages[0] }}</p>{% endif %}
+    {% endwith %}
+
+    <div class="form-group">
+        <h3>Generate New API Key</h3>
+        <form method="POST" action="/admin/generate">
+            <input type="text" name="owner" placeholder="User Name/Email" required>
+            <input type="number" name="limit" placeholder="Request Limit" value="1000" required>
+            <button type="submit" class="btn">Generate Key</button>
+        </form>
+    </div>
+
+    <h3>All API Keys</h3>
+    <table>
+        <tr>
+            <th>API Key</th>
+            <th>Owner</th>
+            <th>Usage</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+        {% for key in keys %}
+        <tr>
+            <td style="font-family: monospace; color: #58a6ff;">{{ key[1] }}</td>
+            <td>{{ key[2] }}</td>
+            <td>{{ key[4] }} / {{ key[3] }}</td>
+            <td style="color: {{ '#7ee787' if key[5] else '#ff7b72' }}">{{ 'Active' if key[5] else 'Disabled' }}</td>
+            <td>
+                <a href="/admin/toggle/{{ key[0] }}" class="btn {{ 'btn-red' if key[5] else '' }}">
+                    {{ 'Disable' if key[5] else 'Enable' }}
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
