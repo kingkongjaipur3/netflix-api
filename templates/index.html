@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFToken API Playground</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #000; color: #fff; margin: 0; padding: 0; }
+        .navbar { background: #111; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
+        .navbar h1 { margin: 0; color: #e50914; font-size: 20px; }
+        .nav-links a { color: #fff; text-decoration: none; margin-left: 15px; font-size: 14px; }
+        .container { max-width: 600px; margin: 20px auto; padding: 15px; }
+        .hero { text-align: center; margin-bottom: 30px; }
+        .hero h2 { font-size: 28px; margin-bottom: 10px; }
+        .hero p { color: #aaa; font-size: 15px; }
+        .card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .card h3 { margin-top: 0; color: #fff; }
+        .warning-box { background: #221a00; border: 1px solid #443600; padding: 15px; border-radius: 8px; margin-bottom: 15px; color: #f0c000; font-size: 14px; }
+        textarea { width: 100%; height: 100px; background: #000; color: #00ff00; border: 1px solid #333; border-radius: 6px; padding: 10px; font-family: monospace; box-sizing: border-box; margin-bottom: 15px; resize: vertical;}
+        button { background: #b81d24; color: #fff; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; width: 100%; transition: 0.2s; }
+        button:hover { background: #e50914; }
+        .result-container { display: none; margin-top: 20px; }
+        .data-row { display: flex; justify-content: space-between; background: #050505; border: 1px solid #222; padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; font-size: 14px; }
+        .data-label { color: #e50914; font-weight: bold; text-transform: uppercase; font-size: 12px; }
+        .data-value { color: #ddd; text-align: right; word-break: break-word; max-width: 60%; }
+        .link-btn { background: #1a7f37; color: #fff; padding: 8px 15px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; margin-top: 10px; }
+        .error-msg { color: #ff4444; text-align: center; margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>NFToken API</h1>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/admin">Admin</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h2>API Playground</h2>
+            <p>Test NFToken API endpoints directly in your browser</p>
+        </div>
+
+        <div class="card">
+            <h3>Free Cookie Check</h3>
+            <p style="color: #aaa; font-size: 14px;">Convert a cookie string to account info — no API key required.</p>
+            
+            <div class="warning-box">
+                ⚠️ Limited to 2 requests per day per IP.
+            </div>
+            
+            <label style="font-size: 12px; color: #888; font-weight: bold;">COOKIE STRING</label>
+            <textarea id="cookieInput" placeholder="Paste your Netscape cookie string here..."></textarea>
+            
+            <button onclick="checkCookie()">Convert Cookie</button>
+            
+            <div id="errorBox" class="error-msg" style="display:none;"></div>
+        </div>
+
+        <div id="resultBox" class="result-container">
+        </div>
+    </div>
+
+    <script>
+        async function checkCookie() {
+            const raw = document.getElementById('cookieInput').value;
+            const resultBox = document.getElementById('resultBox');
+            const errorBox = document.getElementById('errorBox');
+            
+            resultBox.style.display = 'none';
+            errorBox.style.display = 'none';
+            resultBox.innerHTML = '';
+
+            if(!raw) {
+                errorBox.textContent = "Please paste a cookie first.";
+                errorBox.style.display = 'block';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/check', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cookie: raw })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    const d = data.data;
+                    resultBox.style.display = 'block';
+                    
+                    let html = `
+                        <div class="data-row"><span class="data-label">EMAIL</span><span class="data-value">${d.email}</span></div>
+                        <div class="data-row"><span class="data-label">COUNTRY</span><span class="data-value">${d.country}</span></div>
+                        <div class="data-row"><span class="data-label">PLAN</span><span class="data-value">${d.plan}</span></div>
+                        <div class="data-row"><span class="data-label">MEMBER SINCE</span><span class="data-value">${d.member_since}</span></div>
+                        <div class="data-row"><span class="data-label">BILLS ON</span><span class="data-value">${d.bills_on}</span></div>
+                        <div class="data-row"><span class="data-label">PROFILES</span><span class="data-value">${d.profiles}</span></div>
+                        
+                        <div class="data-row" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                            <span class="data-label">PC LINK</span>
+                            <a href="${d.pc_link}" target="_blank" class="link-btn">OPEN</a>
+                        </div>
+                        
+                        <div class="data-row" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                            <span class="data-label">MOBILE LINK</span>
+                            <a href="${d.mobile_link}" target="_blank" class="link-btn">OPEN</a>
+                        </div>
+                        
+                        <div class="data-row" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                            <span class="data-label">TV LINK</span>
+                            <a href="${d.tv_link}" target="_blank" class="link-btn">OPEN</a>
+                        </div>
+                    `;
+                    resultBox.innerHTML = html;
+                } else {
+                    errorBox.textContent = "❌ " + data.error;
+                    errorBox.style.display = 'block';
+                }
+            } catch (e) {
+                errorBox.textContent = "❌ Server error. Please try again.";
+                errorBox.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
